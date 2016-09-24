@@ -32,6 +32,7 @@ import org.apache.isis.applib.annotation.MemberOrder;
 import org.apache.isis.applib.annotation.NatureOfService;
 import org.apache.isis.applib.annotation.Parameter;
 import org.apache.isis.applib.annotation.ParameterLayout;
+import org.apache.isis.applib.annotation.Programmatic;
 import org.apache.isis.applib.annotation.SemanticsOf;
 import org.apache.isis.applib.query.QueryDefault;
 import org.apache.isis.applib.services.eventbus.ActionDomainEvent;
@@ -39,13 +40,14 @@ import org.apache.isis.applib.services.i18n.TranslatableString;
 import org.apache.isis.applib.services.repository.RepositoryService;
 import org.assertj.core.util.Lists;
 import org.isisaddons.wicket.fullcalendar2.cpt.applib.CalendarEvent;
+import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 
-import domainapp.dom.simple.SimpleObject;
+import domainapp.dom.reserva.Reserva;
 
 @DomainService(
         nature = NatureOfService.VIEW,
-        repositoryFor = SimpleObject.class
+        repositoryFor = Reserva.class
 )
 @DomainServiceLayout(
         menuOrder = "10"
@@ -69,7 +71,7 @@ public class Reservas {
     public List<Reserva> listAll() {
         return repositoryService.allInstances(Reserva.class);
     }
-    //endregion
+/*    //endregion
     //calendar 
     public interface CalendarEventable {
         String getCalendarName();
@@ -77,7 +79,7 @@ public class Reservas {
     } 
     
     //fin calendar
-    
+*/    
     //region > findByName (action)
     @Action(
             semantics = SemanticsOf.SAFE
@@ -97,14 +99,24 @@ public class Reservas {
                         "name", name));
     }
     
+    
+    
 
+    
+    
     
   //region > create (action)
     public static class CreateDomainEvent extends ActionDomainEvent<Reservas> {
-        public CreateDomainEvent(final Reservas source, final Identifier identifier, final Object... arguments) {
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
+		public CreateDomainEvent(final Reservas source, final Identifier identifier, final Object... arguments) {
             super(source, identifier, arguments);
         }
     }
+    
     
     
     @Action(
@@ -123,28 +135,36 @@ public class Reservas {
                 )
     		@ParameterLayout(named="Email") String email,
     		
-    		@ParameterLayout(named="Fecha llegada") LocalDate fechaIn,
+    		@ParameterLayout(named="Fecha llegada") DateTime fechaIn)
+    		/*
     		@ParameterLayout(named="Fecha salida") LocalDate fechaSal,
     		@ParameterLayout(named="Húespedes?") int numHues,
     		@ParameterLayout(named="Id Huesped") int huesped_id_OID,
-			@ParameterLayout(named="Habitación") String habitacion) 
+			@ParameterLayout(named="Habitación") String habitacion)
+    */
 
     	
     
     {
         final Reserva obj = repositoryService.instantiate(Reserva.class);
+        
+        
+        
+        
         obj.setName(name);
         obj.setEmail(email);
         obj.setFechaIn(fechaIn);
-        obj.setFechaSal(fechaSal);
+        /*obj.setFechaSal(fechaSal);
         obj.setNumHues(numHues);
         obj.setHuesped_id_OID(huesped_id_OID);
-        obj.setHabitacion(habitacion);
+        obj.setHabitacion(habitacion);*/
         
         
         
         repositoryService.persist(obj);
         return obj;
+        
+        
     }
 	
     //endregion
@@ -159,4 +179,5 @@ public class Reservas {
     
     //endregion
 }
+
 

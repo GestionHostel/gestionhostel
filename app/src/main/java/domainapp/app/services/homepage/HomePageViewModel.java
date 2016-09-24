@@ -26,8 +26,7 @@ import domainapp.dom.huesped.Huesped;
 import domainapp.dom.huesped.Huespedes;
 import domainapp.dom.reserva.Reserva;
 import domainapp.dom.reserva.Reservas;
-import domainapp.dom.simple.SimpleObject;
-import domainapp.dom.simple.SimpleObjects;
+
 import domainapp.dom.tipodehabitacion.TipodeHabitacion;
 import domainapp.dom.tipodehabitacion.TipodeHabitaciones;
 
