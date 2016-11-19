@@ -22,7 +22,9 @@ import javax.jdo.annotations.IdentityType;
 import javax.jdo.annotations.VersionStrategy;
 
 import org.apache.isis.applib.annotation.Action;
+import org.apache.isis.applib.annotation.AutoComplete;
 import org.apache.isis.applib.annotation.DomainObject;
+import org.apache.isis.applib.annotation.ObjectType;
 import org.apache.isis.applib.annotation.Property;
 import org.apache.isis.applib.annotation.SemanticsOf;
 import org.apache.isis.applib.services.eventbus.ActionDomainEvent;
@@ -31,11 +33,16 @@ import org.apache.isis.applib.services.i18n.TranslatableString;
 import org.apache.isis.applib.services.repository.RepositoryService;
 import org.apache.isis.applib.util.ObjectContracts;
 
+import domainapp.dom.reserva.Reserva;
+import domainapp.dom.reserva.Reservas;
+
+@SuppressWarnings("deprecation")
 @javax.jdo.annotations.PersistenceCapable(
         identityType=IdentityType.DATASTORE,
         schema = "simple",
         table = "Huesped"
 )
+
 @javax.jdo.annotations.DatastoreIdentity(
         strategy=javax.jdo.annotations.IdGeneratorStrategy.IDENTITY,
          column="id")
@@ -47,18 +54,19 @@ import org.apache.isis.applib.util.ObjectContracts;
         @javax.jdo.annotations.Query(
                 name = "find", language = "JDOQL",
                 value = "SELECT "
-                        + "FROM domainapp.dom.simple.Huesped "),
+                        + "FROM domainapp.dom.huesped.Huesped "),
         @javax.jdo.annotations.Query(
                 name = "findByName", language = "JDOQL",
                 value = "SELECT "
-                        + "FROM domainapp.dom.simple.Huesped "
+                        + "FROM domainapp.dom.huesped.Huesped "
                         + "WHERE name.indexOf(:name) >= 0 "),
+        
         @javax.jdo.annotations.Query(
-            	
-                name = "findByTitular", language = "JDOQL",
+                name = "findByEmail", language = "JDOQL",
                 value = "SELECT "
-                        + "FROM domainapp.dom.simple.Huesped "
-                        + "WHERE titularRes.toString(:titularRes) == 'TITULAR' ")
+                        //+ "FROM domainapp.dom.simple.Huesped  "
+                        + "FROM domainapp.dom.huesped.Huesped  "
+                        + "WHERE email.indexOf(:email) >= 0 ")
         }
 		
 )
@@ -66,6 +74,7 @@ import org.apache.isis.applib.util.ObjectContracts;
 
 @javax.jdo.annotations.Unique(name="Huesped_name_UNQ", members = {"name"})
 @DomainObject
+//@DomainObject(autoCompleteRepository = Reservas.class)
 public class Huesped implements Comparable<Huesped> {
 
     public static final int NAME_LENGTH = 40;
@@ -147,19 +156,15 @@ public class Huesped implements Comparable<Huesped> {
     	this.titularRes = titularRes;
     }
     
-    private E_canalVenta canalVenta;
-    @javax.jdo.annotations.Column(allowsNull="false")
-    public E_canalVenta getCanalVenta() {
-    	return canalVenta; 
-    }
-    public void setCanalVenta(E_canalVenta canalVenta) {
-    	this.canalVenta = canalVenta;
-    }
-    
+
 
     public TranslatableString validateName(final String name) {
         return name != null && name.contains("!")? TranslatableString.tr("El signo de exclamación no está permitido"): null;
     }
+    
+    
+   
+    
 
     public static class DeleteDomainEvent extends ActionDomainEvent<Huesped> {}
     @Action(
@@ -172,7 +177,7 @@ public class Huesped implements Comparable<Huesped> {
 
 
 
-    
+    @Override
     public int compareTo(final Huesped other) {
         return ObjectContracts.compare(this, other, "name");
     }
@@ -183,9 +188,7 @@ public class Huesped implements Comparable<Huesped> {
     	TITULAR, NOTITULAR;
     }
     
-    public enum E_canalVenta{
-    	Booking, Despegar;
-    }
+
 
     @javax.inject.Inject
     RepositoryService repositoryService;

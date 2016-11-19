@@ -26,7 +26,8 @@ import domainapp.dom.huesped.Huesped;
 import domainapp.dom.huesped.Huespedes;
 import domainapp.dom.reserva.Reserva;
 import domainapp.dom.reserva.Reservas;
-
+import domainapp.dom.simple.SimpleObject;
+import domainapp.dom.simple.SimpleObjects;
 import domainapp.dom.tipodehabitacion.TipodeHabitacion;
 import domainapp.dom.tipodehabitacion.TipodeHabitaciones;
 
@@ -42,7 +43,7 @@ public class HomePageViewModel {
     //region > object (collection)
     @org.apache.isis.applib.annotation.HomePage
     public List<Reserva> getReservas() {
-        return reservas.listAll();
+        return reservas.listarReservas();
     }
     //endregion
 

@@ -16,18 +16,13 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package domainapp.dom.tipodehabitacion;
+package domainapp.dom.configuracion;
 
-import javax.jdo.annotations.Column;
 import javax.jdo.annotations.IdentityType;
-import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.VersionStrategy;
 
 import org.apache.isis.applib.annotation.Action;
-import org.apache.isis.applib.annotation.Disabled;
 import org.apache.isis.applib.annotation.DomainObject;
-import org.apache.isis.applib.annotation.MemberOrder;
-import org.apache.isis.applib.annotation.Named;
 import org.apache.isis.applib.annotation.Property;
 import org.apache.isis.applib.annotation.SemanticsOf;
 import org.apache.isis.applib.services.eventbus.ActionDomainEvent;
@@ -36,11 +31,10 @@ import org.apache.isis.applib.services.i18n.TranslatableString;
 import org.apache.isis.applib.services.repository.RepositoryService;
 import org.apache.isis.applib.util.ObjectContracts;
 
-
 @javax.jdo.annotations.PersistenceCapable(
         identityType=IdentityType.DATASTORE,
         schema = "simple",
-        table = "TipodeHabitacion"
+        table = "Configuracion"
 )
 @javax.jdo.annotations.DatastoreIdentity(
         strategy=javax.jdo.annotations.IdGeneratorStrategy.IDENTITY,
@@ -53,26 +47,26 @@ import org.apache.isis.applib.util.ObjectContracts;
         @javax.jdo.annotations.Query(
                 name = "find", language = "JDOQL",
                 value = "SELECT "
-                        + "FROM dom.tipodehabitacion.TipodeHabitacion"),
+                        + "FROM domainapp.dom.simple.Configuracion "),
         @javax.jdo.annotations.Query(
                 name = "findByName", language = "JDOQL",
                 value = "SELECT "
-                        + "FROM dom.tipodehabitacion.TipodeHabitacion "
+                        + "FROM domainapp.dom.simple.Configuracion "
                         + "WHERE name.indexOf(:name) >= 0 ")
 })
-@javax.jdo.annotations.Unique(name="TipodeHabitacion_descripcion_UNQ", members = {"descripcion"})
+@javax.jdo.annotations.Unique(name="Configuracion_name_UNQ", members = {"name"})
 @DomainObject
-public class TipodeHabitacion implements Comparable<TipodeHabitacion> {
+public class Configuracion implements Comparable<Configuracion> {
 
     public static final int NAME_LENGTH = 40;
 
 
     public TranslatableString title() {
-        return TranslatableString.tr("Tipo de habitación: {descripcion}", "descripcion", getDescripcion());
+        return TranslatableString.tr("Object: {name}", "name", getName());
     }
 
 
-    public static class NameDomainEvent extends PropertyDomainEvent<TipodeHabitacion,String> {}
+    public static class NameDomainEvent extends PropertyDomainEvent<Configuracion,String> {}
     @javax.jdo.annotations.Column(
             allowsNull="false",
             length = NAME_LENGTH
@@ -87,79 +81,14 @@ public class TipodeHabitacion implements Comparable<TipodeHabitacion> {
     public void setName(final String name) {
         this.name = name;
     }
-    
-    private Integer camas;
-	@javax.jdo.annotations.Column(allowsNull="false")
-    public Integer getCamas() {
-        return camas;
-    }
-    public void setCamas(final Integer camas) {
-        this.camas = camas;
-    }
 
-    private Ecama ccama;
-    
-    @Persistent
-    @MemberOrder(sequence = "2")
-	@javax.jdo.annotations.Column(allowsNull="false")
-	
-    public Ecama getCama() {
-    	return ccama;
-    }
-    
-    public void setCama(Ecama ccama)  {
-    	this.ccama = ccama;
-    }
-    
-    private Etipodeprecio tprecio;
-
-    @Persistent
-    @MemberOrder(sequence = "3")
-	@javax.jdo.annotations.Column(allowsNull="false")
-	
-    public Etipodeprecio getTprecio() {
-    	return tprecio;
-    }
-    
-    public void setTprecio (Etipodeprecio tprecio)  {
-    	this.tprecio = tprecio;
-    }
-   
-    private Etipodesexo tsexo;
-
-    @Persistent
-    @MemberOrder(sequence = "3")
-	@javax.jdo.annotations.Column(allowsNull="false")
-	
-    public Etipodesexo getTsexo() {
-    	return tsexo;
-    }
-    
-   
-    
-    public void setTsexo (Etipodesexo tsexo)  {
-    	this.tsexo = tsexo;
-    }
-    
-    
-    private String descripcion;
-	@javax.jdo.annotations.Column(allowsNull="false")
-	public String getDescripcion() {
-        return descripcion;
-    }
-    public void setDescripcion(final String descripcion) {
-        this.descripcion = descripcion;
-    }
-    
     public TranslatableString validateName(final String name) {
         return name != null && name.contains("!")? TranslatableString.tr("Exclamation mark is not allowed"): null;
     }
 
-    
-    
-    
 
-    public static class DeleteDomainEvent extends ActionDomainEvent<TipodeHabitacion> {}
+
+    public static class DeleteDomainEvent extends ActionDomainEvent<Configuracion> {}
     @Action(
             domainEvent = DeleteDomainEvent.class,
             semantics = SemanticsOf.NON_IDEMPOTENT_ARE_YOU_SURE
@@ -171,24 +100,18 @@ public class TipodeHabitacion implements Comparable<TipodeHabitacion> {
 
 
     @Override
-    public int compareTo(final TipodeHabitacion other) {
+    public int compareTo(final Configuracion other) {
         return ObjectContracts.compare(this, other, "name");
     }
 
-    public enum Ecama{
-    	
-	uno,dos,tres,cuatro
-	}
-    public enum Etipodeprecio{
-    	
-    	Privada,Dormis
-    	}
-    public enum Etipodesexo{
-    	
-    	Masculino,Femenino,Mixto
-    	}
-    
+
     @javax.inject.Inject
     RepositoryService repositoryService;
+
+
+	public void setNameTipoH(String nameth) {
+		// TODO Auto-generated method stub
+		
+	}
 
 }

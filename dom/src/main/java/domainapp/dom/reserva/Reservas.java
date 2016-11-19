@@ -18,6 +18,7 @@
  */
 package domainapp.dom.reserva;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -29,11 +30,14 @@ import org.apache.isis.applib.annotation.BookmarkPolicy;
 import org.apache.isis.applib.annotation.DomainService;
 import org.apache.isis.applib.annotation.DomainServiceLayout;
 import org.apache.isis.applib.annotation.MemberOrder;
+import org.apache.isis.applib.annotation.MinLength;
 import org.apache.isis.applib.annotation.NatureOfService;
+import org.apache.isis.applib.annotation.Optionality;
 import org.apache.isis.applib.annotation.Parameter;
 import org.apache.isis.applib.annotation.ParameterLayout;
 import org.apache.isis.applib.annotation.Programmatic;
 import org.apache.isis.applib.annotation.SemanticsOf;
+import org.apache.isis.applib.annotation.Where;
 import org.apache.isis.applib.query.QueryDefault;
 import org.apache.isis.applib.services.eventbus.ActionDomainEvent;
 import org.apache.isis.applib.services.i18n.TranslatableString;
@@ -42,8 +46,17 @@ import org.assertj.core.util.Lists;
 import org.isisaddons.wicket.fullcalendar2.cpt.applib.CalendarEvent;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
+import org.joda.time.ReadableInstant;
 
-import domainapp.dom.reserva.Reserva;
+import domainapp.dom.configuracion.Configuracion;
+import domainapp.dom.configuracion.Configuraciones;
+import domainapp.dom.habitacion.Habitacion;
+import domainapp.dom.habitacion.Habitaciones;
+import domainapp.dom.huesped.Huesped;
+import domainapp.dom.huesped.Huespedes;
+import domainapp.dom.simple.SimpleObject;
+import domainapp.dom.tipodehabitacion.TipodeHabitacion;
+import java.time.temporal.ChronoUnit;
 
 @DomainService(
         nature = NatureOfService.VIEW,
@@ -68,18 +81,10 @@ public class Reservas {
             bookmarking = BookmarkPolicy.AS_ROOT
     )
     @MemberOrder(sequence = "1")
-    public List<Reserva> listAll() {
+    public List<Reserva> listarReservas() {
         return repositoryService.allInstances(Reserva.class);
     }
-/*    //endregion
-    //calendar 
-    public interface CalendarEventable {
-        String getCalendarName();
-        CalendarEvent toCalendarEvent();
-    } 
     
-    //fin calendar
-*/    
     //region > findByName (action)
     @Action(
             semantics = SemanticsOf.SAFE
@@ -88,7 +93,7 @@ public class Reservas {
             bookmarking = BookmarkPolicy.AS_ROOT
     )
     @MemberOrder(sequence = "2")
-    public List<Reserva> findByName(
+    public List<Reserva> buscarPorNombre(
             @ParameterLayout(named="Name")
             final String name
     ) {
@@ -99,24 +104,13 @@ public class Reservas {
                         "name", name));
     }
     
-    
-    
 
-    
-    
-    
-  //region > create (action)
+  //region > Crear Reserva (action)
     public static class CreateDomainEvent extends ActionDomainEvent<Reservas> {
-        /**
-		 * 
-		 */
-		private static final long serialVersionUID = 1L;
-
-		public CreateDomainEvent(final Reservas source, final Identifier identifier, final Object... arguments) {
+        public CreateDomainEvent(final Reservas source, final Identifier identifier, final Object... arguments) {
             super(source, identifier, arguments);
         }
     }
-    
     
     
     @Action(
@@ -124,60 +118,104 @@ public class Reservas {
     )
     @MemberOrder(sequence = "3")
 
-    public Reserva create(
+    public Reserva crearReserva(
     		
-            final @ParameterLayout(named="Nombre")String name, 
-            //@ParameterLayout(named="Teléfono")String numTel,
-            @Parameter(
-                    regexPattern = "(\\w+\\.)*\\w+@(\\w+\\.)+[A-Za-z]+",
-                    regexPatternFlags = Pattern.CASE_INSENSITIVE,
-                    regexPatternReplacement = "Ingrese una dirección de correo electrónico válida (contienen un símbolo '@') -"   
-                )
-    		@ParameterLayout(named="Email") String email,
-    		
-    		@ParameterLayout(named="Fecha llegada") DateTime fechaIn)
-    		/*
-    		@ParameterLayout(named="Fecha salida") LocalDate fechaSal,
-    		@ParameterLayout(named="Húespedes?") int numHues,
-    		@ParameterLayout(named="Id Huesped") int huesped_id_OID,
-			@ParameterLayout(named="Habitación") String habitacion)
-    */
+            final
+            @ParameterLayout(named="Huesped (ingrese email del titular)") Huesped huesped,
+            
+            @ParameterLayout(named="Fecha llegada") LocalDate fechaIn,
+            @ParameterLayout(named="Fecha llegada") LocalDate fechaSal,
+    		@ParameterLayout(named="Días de estadía") int diasEstadia,
+    		@ParameterLayout(named="Habitación") Habitacion habitacion,
+    		@ParameterLayout(named="Huéspedes?") int numHues,
+    		@ParameterLayout(named="Canal de venta")@Parameter(optionality = Optionality.MANDATORY) String canalVenta)
 
-    	
-    
+        
     {
         final Reserva obj = repositoryService.instantiate(Reserva.class);
-        
-        
-        
-        
-        obj.setName(name);
-        obj.setEmail(email);
+        obj.setHuesped(huesped);
         obj.setFechaIn(fechaIn);
-        /*obj.setFechaSal(fechaSal);
+        obj.setFechaSal(fechaSal);
+        obj.setDiasEstadia(diasEstadia);
+        obj.setHabitacion(habitacion);
         obj.setNumHues(numHues);
-        obj.setHuesped_id_OID(huesped_id_OID);
-        obj.setHabitacion(habitacion);*/
+        obj.setCanalVenta(canalVenta);
         
         
-        
-        repositoryService.persist(obj);
+        repositoryService.persist(obj);	
         return obj;
-        
-        
     }
-	
-    //endregion
     
-
-    //region > injected services
+    // Fin de Region Crear Reserva.
+    
+    
+    //diasEstadia = daysBetween(fechaIn, fechaSal);
+    
+    // Validación fecha de Reserva inicial
+    @Programmatic
+    public String validate1CrearReserva(final LocalDate fechaIn){
+    	
+    	
+    	LocalDate hoyy = LocalDate.now();
+    	if (fechaIn.isBefore(hoyy)) {
+			return "Una Reserva no puede empezar en el pasado";
+		}
+    	  	
+    	
+    	return null;
+    }
+    
+    //
+    
+ 
+    
+    // Autocompleta el Huésped a partir de su email:
+    public Collection<Huesped> autoComplete0CrearReserva(final @MinLength(2) String email) {
+        return huespedes.findByEmail(email);
+    }
+    //
+    
+    /*
+    // Autocompleta la estadía:
+    public int autoComplete3CrearReserva(final LocalDate fechaIn, final LocalDate fechaSal) {
+    	int dias = ChronoUnit.DAYS.between(fechaIn, fechaSal);
+        //int dias =  fechaIn.until(fechaSal, ChronoUnit.DAYS);
+    	return dias;
+    }
+    //
+	
+	*/
+    
+    
+    // Lista las habitaciones creadas en la clase correspondiente:    
+     public List<Habitacion> choices4CrearReserva() {
+     
+        return habitaciones.listAll();
+   	}	
+    
+     public Collection<Integer> choices5CrearReserva() {
+         return Arrays.asList(1,2,3,4,5,6,7,8,9,10);
+     }
+     
+     public List<String> choices6CrearReserva() {
+         return Arrays.asList("Despegar","Avantrip");
+         
+     }
 
     @javax.inject.Inject
     RepositoryService repositoryService;
     
+    @javax.inject.Inject
+    private Huespedes huespedes;
     
+    @javax.inject.Inject
+    private Habitaciones habitaciones;
+    
+    @javax.inject.Inject
+    private Configuraciones configuraciones;
+    
+
     
     //endregion
 }
-
 

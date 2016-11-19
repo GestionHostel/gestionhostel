@@ -16,10 +16,8 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package domainapp.dom.tipodehabitacion;
+package domainapp.dom.configuracion;
 
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 import org.apache.isis.applib.Identifier;
@@ -30,8 +28,6 @@ import org.apache.isis.applib.annotation.DomainService;
 import org.apache.isis.applib.annotation.DomainServiceLayout;
 import org.apache.isis.applib.annotation.MemberOrder;
 import org.apache.isis.applib.annotation.NatureOfService;
-import org.apache.isis.applib.annotation.Optionality;
-import org.apache.isis.applib.annotation.Parameter;
 import org.apache.isis.applib.annotation.ParameterLayout;
 import org.apache.isis.applib.annotation.SemanticsOf;
 import org.apache.isis.applib.query.QueryDefault;
@@ -39,27 +35,18 @@ import org.apache.isis.applib.services.eventbus.ActionDomainEvent;
 import org.apache.isis.applib.services.i18n.TranslatableString;
 import org.apache.isis.applib.services.repository.RepositoryService;
 
-import domainapp.dom.simple.SimpleObject;
-import domainapp.dom.tipodehabitacion.TipodeHabitacion.Ecama;
-import domainapp.dom.tipodehabitacion.TipodeHabitacion.Etipodeprecio;
-import domainapp.dom.tipodehabitacion.TipodeHabitacion.Etipodesexo;
-
-
-/*import domainapp.dom.simple.TipodeHabitacion.Etipodeprecio; 
-import domainapp.dom.simple.TipodeHabitacion.Etipodesexo; 
-*/
 @DomainService(
         nature = NatureOfService.VIEW,
-        repositoryFor = TipodeHabitacion.class
+        repositoryFor = Configuracion.class
 )
 @DomainServiceLayout(
         menuOrder = "10"
 )
-public class TipodeHabitaciones {
+public class Configuraciones {
 
     //region > title
     public TranslatableString title() {
-        return TranslatableString.tr("Tipo de Habitación");
+        return TranslatableString.tr("Simple Objects");
     }
     //endregion
 
@@ -71,8 +58,8 @@ public class TipodeHabitaciones {
             bookmarking = BookmarkPolicy.AS_ROOT
     )
     @MemberOrder(sequence = "1")
-    public List<TipodeHabitacion> listAll() {
-        return repositoryService.allInstances(TipodeHabitacion.class);
+    public List<Configuracion> listAll() {
+        return repositoryService.allInstances(Configuracion.class);
     }
     //endregion
 
@@ -84,25 +71,21 @@ public class TipodeHabitaciones {
             bookmarking = BookmarkPolicy.AS_ROOT
     )
     @MemberOrder(sequence = "2")
-    public List<TipodeHabitacion> findByName(
+    public List<Configuracion> findByName(
             @ParameterLayout(named="Name")
             final String name
     ) {
         return repositoryService.allMatches(
                 new QueryDefault<>(
-                        TipodeHabitacion.class,
+                        Configuracion.class,
                         "findByName",
                         "name", name));
     }
     //endregion
-    
-    
 
-    
-    
     //region > create (action)
-    public static class CreateDomainEvent extends ActionDomainEvent<TipodeHabitaciones> {
-        public CreateDomainEvent(final TipodeHabitaciones source, final Identifier identifier, final Object... arguments) {
+    public static class CreateDomainEvent extends ActionDomainEvent<Configuraciones> {
+        public CreateDomainEvent(final Configuraciones source, final Identifier identifier, final Object... arguments) {
             super(source, identifier, arguments);
         }
     }
@@ -111,27 +94,24 @@ public class TipodeHabitaciones {
             domainEvent = CreateDomainEvent.class
     )
     @MemberOrder(sequence = "3")
-    public TipodeHabitacion crearTipoDeHabitacion(
-            final @ParameterLayout(named="Nombre") String name,
-           final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(named="Cantidad de Camas") Integer camas,
-           final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(named="Tipo de Precio") Etipodeprecio tprecio,
-           final @Parameter(optionality = Optionality.OPTIONAL) @ParameterLayout(named="Tipo de Sexo admitido en Habitaciones") Etipodesexo tsexo
-           ) {
-        final TipodeHabitacion obj = repositoryService.instantiate(TipodeHabitacion.class);
+    public Configuracion crearCanalDeVenta(
+            final @ParameterLayout(named="Name") String name) {
+        final Configuracion obj = repositoryService.instantiate(Configuracion.class);
         obj.setName(name);
-        obj.setCamas(camas);
-        obj.setTprecio(tprecio);
-        obj.setTsexo(tsexo);
-        obj.setDescripcion(name + ", camas: " + camas.toString() + ", tipo de precio: " + tprecio.toString() + ", sexo:" + tsexo.toString());
-       
         repositoryService.persist(obj);
         return obj;
     }
-    
-    public Collection<Integer> choices1CrearTipoDeHabitacion() {
-        return Arrays.asList(2,3,4,6,8,10,12);
-    }
+
     //endregion
+
+    @MemberOrder(sequence = "5")
+    public Configuracion crearTipoHabitacion(
+            final @ParameterLayout(named="Nameth") String nameth) {
+        final Configuracion objth = repositoryService.instantiate(Configuracion.class);
+        objth.setNameTipoH(nameth);
+        repositoryService.persist(objth);
+        return objth;
+    }
 
     //region > injected services
 
